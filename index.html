@@ -39,13 +39,11 @@
 .envelope-flap{transform:rotateX(180deg)}.envelope-card{transform:translateY(-34%)}.envelope-intro{transition:none}}
 
 
-/* Fixed, softly translucent floral side frame begins at the intro and stays while the page scrolls. */
-.floral-frame{position:fixed;inset:0;z-index:90000;pointer-events:none;opacity:0;visibility:hidden;transition:opacity 1.7s cubic-bezier(.2,.7,.2,1),visibility 1.7s;}
-.floral-frame img{width:100%;height:100%;display:block;object-fit:fill;opacity:.34;}
+/* Static floral side frame: hidden over the opening photo, visible from the intro onward. */
+.floral-frame{position:fixed;inset:0;z-index:90000;pointer-events:none;opacity:0;visibility:hidden;transition:none;}
+.floral-frame img{width:100%;height:100%;display:block;object-fit:fill;opacity:.22;}
 body.frame-active .floral-frame{opacity:1;visibility:visible;}
-/* Keep all page content readable above the frame; the image itself never blocks taps. */
-.wrap{z-index:21;}
-@media(max-width:520px){.floral-frame img{opacity:.30;}}
+@media(max-width:520px){.floral-frame img{opacity:.20;}}
 @media(prefers-reduced-motion:reduce){.floral-frame{transition:none;}}
 
 </style>
@@ -146,23 +144,18 @@ if(envelopeIntro){
   envelopeIntro.addEventListener('click',finishEnvelope);
   envelopeIntro.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();finishEnvelope()}});
 }
-// Elegant side frame appears from the “Our happy day” intro section onward.
+// Static floral frame starts after the opening hero photo and stays behind the content while scrolling.
 const frameLayer=document.getElementById('floralFrame');
-const introSection=document.querySelector('.intro');
-if(frameLayer && introSection && 'IntersectionObserver' in window){
-  const frameObserver=new IntersectionObserver(entries=>{
-    entries.forEach(entry=>{
-      if(entry.isIntersecting && document.body.classList.contains('invitation-opened')){
-        document.body.classList.add('frame-active');
-        frameObserver.disconnect();
-      }
-    });
-  },{threshold:0.12});
-  frameObserver.observe(introSection);
-}else if(frameLayer && introSection){
-  window.addEventListener('scroll',()=>{if(introSection.getBoundingClientRect().top<window.innerHeight*.75)document.body.classList.add('frame-active')},{passive:true});
+const heroSection=document.querySelector('.hero');
+function updateFloralFrame(){
+  if(!frameLayer || !heroSection) return;
+  const heroBottom=heroSection.getBoundingClientRect().bottom;
+  const invitationOpened=document.body.classList.contains('invitation-opened');
+  document.body.classList.toggle('frame-active', invitationOpened && heroBottom <= 8);
 }
-
+window.addEventListener('scroll', updateFloralFrame, {passive:true});
+window.addEventListener('resize', updateFloralFrame);
+updateFloralFrame();
 </script>
 </body>
 </html>
